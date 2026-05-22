@@ -38,9 +38,12 @@ def send_command(cmd):
         time.sleep(0.05)
         # 读取Arduino回复
         while ser.in_waiting > 0:
-            response = ser.readline().decode().strip()
-            if response:
-                print(f"[Arduino] {response}")
+            try:
+                response = ser.readline().decode('utf-8', errors='ignore').strip()
+                if response:
+                    print(f"[Arduino] {response}")
+            except:
+                pass  # 忽略解码错误
     except serial.SerialException as e:
         print(f"[{time.strftime('%H:%M:%S')}] Send failed: {e}")
 
@@ -65,11 +68,11 @@ cap = cv2.VideoCapture(0)
 # FPS 计算
 prev_time = 0
 
-# 左手状态 (控制 LED1 - Pin 18)
+# 左手状态 (控制 LED1 - Pin 8)
 left_hand_raised = False
 led1_state = False
 
-# 右手状态 (控制 LED2 - Pin 17)
+# 右手状态 (控制 LED2 - Pin 18)
 right_hand_raised = False
 led2_state = False
 
@@ -114,7 +117,7 @@ def is_left_hand(landmarks):
 print("=" * 50)
 print("       Hand Control Dual LED System")
 print("=" * 50)
-log("Left hand  -> LED1 (Pin 18) | Right hand -> LED2 (Pin 17)")
+log("Left hand  -> LED1 (Pin 8) | Right hand -> LED2 (Pin 18)")
 log("Keyboard: '1'/'2' = LED1 ON/OFF, '3'/'4' = LED2 ON/OFF, 'm' = toggle display mode, 'q' = quit")
 print("=" * 50)
 
@@ -189,12 +192,12 @@ with HandLandmarker.create_from_options(options) as landmarker:
         # 左手状态 (绿色)
         cv2.putText(frame, f"Left Hand: {left_hand_status}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
         led1_color = (0, 255, 0) if led1_state else (100, 100, 100)
-        cv2.putText(frame, f"LED1(Pin18): {'ON' if led1_state else 'OFF'}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, led1_color, 1)
+        cv2.putText(frame, f"LED1(Pin8): {'ON' if led1_state else 'OFF'}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, led1_color, 1)
         
         # 右手状态 (蓝色)
         cv2.putText(frame, f"Right Hand: {right_hand_status}", (10, 95), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 100, 0), 1)
         led2_color = (255, 100, 0) if led2_state else (100, 100, 100)
-        cv2.putText(frame, f"LED2(Pin17): {'ON' if led2_state else 'OFF'}", (10, 115), cv2.FONT_HERSHEY_SIMPLEX, 0.5, led2_color, 1)
+        cv2.putText(frame, f"LED2(Pin18): {'ON' if led2_state else 'OFF'}", (10, 115), cv2.FONT_HERSHEY_SIMPLEX, 0.5, led2_color, 1)
         
         # 阈值线
         thresh_y = int(HAND_RAISE_THRESH * h)
@@ -206,7 +209,11 @@ with HandLandmarker.create_from_options(options) as landmarker:
         font_scale = 0.4
         thickness = 1
         (text_w, text_h), _ = cv2.getTextSize(text, font, font_scale, thickness)
-        text_x = (w - text_w) // 2
+        # ====== "Raise Line" 居中 ======
+        # text_x = (w - text_w) // 2
+        # ====== "Raise Line" 居右 ======
+        right_margin = 10
+        text_x = w - text_w - right_margin
         text_y = thresh_y - 8
         cv2.putText(frame, text, (text_x, text_y), font, font_scale, (0, 0, 255), thickness)
         

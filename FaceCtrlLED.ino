@@ -1,30 +1,43 @@
 /*
  * Hand Control Dual LED System
- * Left Hand  -> LED1 (Pin 18)
- * Right Hand -> LED2 (Pin 17)
+ * Left Hand  -> LED1 (Pin 8)
+ * Right Hand -> LED2 (Pin 18)
+ * 
+ * 串口说明:
+ * - Serial (USB) -> 与 Python 通信
+ * - Serial2 (Pin 17=TX) -> 调试日志输出
  */
 
-int led1Pin = 18;  // 左手控制
-int led2Pin = 17;  // 右手控制
+int led1Pin = 8;   // 左手控制
+int led2Pin = 18;  // 右手控制
 String inputBuffer = "";
+
+// 调试日志宏
+#define DEBUG_LOG(msg) Serial2.println(msg)
 
 void setup() {
   pinMode(led1Pin, OUTPUT);
   pinMode(led2Pin, OUTPUT);
+  
   Serial.begin(9600);
+  
+  // Serial2: 显式指定引脚 (RX=16, TX=17)
+  Serial2.begin(115200, SERIAL_8N1, 16, 17);
   
   digitalWrite(led1Pin, LOW);
   digitalWrite(led2Pin, LOW);
   
   delay(1000);
-  Serial.println("========================================");
-  Serial.println("   Dual LED Control System Ready");
-  Serial.println("========================================");
-  Serial.println("LED1 (Pin 18) - Left Hand");
-  Serial.println("LED2 (Pin 17) - Right Hand");
-  Serial.println("========================================");
   
-  // LED 测试：交替闪烁 3 次
+  DEBUG_LOG("========================================");
+  DEBUG_LOG("   Dual LED Control System Ready");
+  DEBUG_LOG("========================================");
+  DEBUG_LOG("LED1 - Left Hand");
+  DEBUG_LOG("LED2 - Right Hand");
+  DEBUG_LOG("Debug Serial2: Pin 17 (TX) @ 115200 baud");
+  DEBUG_LOG("========================================");
+  
+  // LED 测试
   for (int i = 0; i < 3; i++) {
     digitalWrite(led1Pin, HIGH);
     delay(150);
@@ -33,7 +46,7 @@ void setup() {
     delay(150);
     digitalWrite(led2Pin, LOW);
   }
-  Serial.println("LED test complete. Waiting for commands...");
+  DEBUG_LOG("LED test complete. Waiting for commands...");
 }
 
 void loop() {
@@ -42,30 +55,27 @@ void loop() {
     
     if (c == '\n' || c == '\r') {
       if (inputBuffer.length() > 0) {
-        Serial.print("Received: [");
-        Serial.print(inputBuffer);
-        Serial.println("]");
+        DEBUG_LOG("----------------------------------------");
+        DEBUG_LOG("Received: [" + inputBuffer + "]");
         
-        // 左手控制 LED1 (Pin 18)
         if (inputBuffer == "LON") {
           digitalWrite(led1Pin, HIGH);
-          Serial.println("-> LED1 (Pin 18) ON");
+          DEBUG_LOG("Action: LED1 ON");
         } 
         else if (inputBuffer == "LOFF") {
           digitalWrite(led1Pin, LOW);
-          Serial.println("-> LED1 (Pin 18) OFF");
+          DEBUG_LOG("Action: LED1 OFF");
         }
-        // 右手控制 LED2 (Pin 17)
         else if (inputBuffer == "RON") {
           digitalWrite(led2Pin, HIGH);
-          Serial.println("-> LED2 (Pin 17) ON");
+          DEBUG_LOG("Action: LED2 ON");
         }
         else if (inputBuffer == "ROFF") {
           digitalWrite(led2Pin, LOW);
-          Serial.println("-> LED2 (Pin 17) OFF");
+          DEBUG_LOG("Action: LED2 OFF");
         }
         else {
-          Serial.println("-> Unknown command");
+          DEBUG_LOG("Action: Unknown command");
         }
         inputBuffer = "";
       }
