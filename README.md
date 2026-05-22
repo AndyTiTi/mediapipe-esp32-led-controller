@@ -1,211 +1,235 @@
-# Hand Control Dual LED System
+# Hand Gesture LED Control
 
-基于 MediaPipe 手部检测的双 LED 手势控制系统。通过摄像头识别左右手位置，控制 Arduino 上的两个 LED 灯。
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Arduino](https://img.shields.io/badge/Arduino-ESP32-green.svg)](https://www.arduino.cc/)
+[![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10+-orange.svg)](https://mediapipe.dev/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 功能特性
+**English** | **[中文](README-zh.md)**
 
-- **左手控制 LED1 (Pin 18)**：举起左手亮灯，放下左手灭灯
-- **右手控制 LED2 (Pin 17)**：举起右手亮灯，放下右手灭灯
-- **双手同时检测**：可同时识别和控制两个 LED
-- **手动键盘控制**：支持键盘快捷键测试
-- **实时状态显示**：窗口显示 FPS、手势状态、LED 状态
-- **串口通信调试**：显示 Arduino 回复的指令确认
+Real-time dual LED control system using hand gesture recognition. Control two LEDs independently with your left and right hand through webcam.
 
-## 硬件要求
+![Demo](demo.gif) *(Add your demo gif here)*
 
-- Arduino 开发板（ESP32 推荐）
-- 2 个 LED 灯
-- USB 数据线
-- 摄像头
+## Features
 
-## 接线说明
+- **Dual Hand Detection** - Recognize left and right hand simultaneously
+- **Independent LED Control** - Left hand controls LED1, right hand controls LED2
+- **Skeleton Visualization** - Real-time hand skeleton rendering (spider-web style)
+-  **Keyboard Control** - Manual LED control for testing
+- **Real-time FPS Display** - Monitor performance
+- **Serial Debug Output** - Separate debug port for logging
+
+## 🎮 Demo
+
+| Gesture | Action | LED |
+|---------|--------|-----|
+| Raise Left Hand | Hand above threshold line | LED1 ON |
+| Lower Left Hand | Hand below threshold line | LED1 OFF |
+| Raise Right Hand | Hand above threshold line | LED2 ON |
+| Lower Right Hand | Hand below threshold line | LED2 OFF |
+
+## Hardware Requirements
+
+| Component | Description |
+|-----------|-------------|
+| ESP32 Dev Board | Or Arduino-compatible board |
+| 2x LEDs | Any color |
+| 2x 220Ω Resistors | For LED current limiting |
+| USB Cable | For programming and serial communication |
+| USB-TTL Module | Optional, for debug logging |
+| Webcam | Any USB camera |
+
+## Wiring
 
 ```
-LED1 (左手控制) -> Pin 18
-LED2 (右手控制) -> Pin 17
-LED 负极 -> GND (通过 220Ω 电阻)
+ESP32 Pin 8  ───────────► LED1 (+) ──► GND
+ESP32 Pin 18 ───────────► LED2 (+) ──► GND
+ESP32 Pin 17 ───────────► USB-TTL RX (debug output)
+ESP32 GND   ────────────► USB-TTL GND
 ```
 
-## 安装依赖
+## Quick Start
 
-### 方式1：直接本机安装（简单）
+### 1. Clone the Repository
 
 ```bash
+git clone https://github.com/yourusername/hand-gesture-led-control.git
+cd hand-gesture-led-control
+```
+
+### 2. Install Python Dependencies
+
+```bash
+# Option 1: Direct install
+pip install opencv-python mediapipe pyserial numpy
+
+# Option 2: Virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+.\venv\Scripts\activate  # Windows
+
 pip install opencv-python mediapipe pyserial numpy
 ```
 
-### 方式2：虚拟环境（推荐）
-
-```bash
-# 创建虚拟环境
-python -m venv blink_env
-
-# 激活环境 (Windows)
-blink_env\Scripts\activate
-# 或 PowerShell
-.\blink_env\Scripts\Activate.ps1
-
-# 安装依赖
-pip install opencv-python mediapipe pyserial numpy
-```
-
-退出环境：`deactivate`
-
-## 下载模型文件
-
-运行前需要下载 MediaPipe 手部检测模型：
+### 3. Download MediaPipe Model
 
 ```bash
 # Windows PowerShell
 curl -o hand_landmarker.task https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
+
+# Linux/Mac
+wget https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
 ```
 
-或直接下载：[hand_landmarker.task](https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task)
+Or download directly: [hand_landmarker.task](https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task)
 
-将文件放到项目根目录 `d:\ArduinoProjects\FaceCtrlLED\`
+### 4. Upload Arduino Code
 
-## 使用方法
+1. Open `mediapipe-esp32-led-controller.ino` in Arduino IDE
+2. Select your board (ESP32 recommended)
+3. Select the correct COM port
+4. Click Upload
 
-### 1. 上传 Arduino 代码
-
-1. 打开 Arduino IDE
-2. 加载 `FaceCtrlLED.ino`
-3. 选择正确的开发板和端口
-4. 点击上传
-
-### 2. 运行 Python 程序
+### 5. Run the Program
 
 ```bash
 python main.py
 ```
 
-### 3. 手势控制
+##  Keyboard Controls
 
-| 手势 | 动作 | 指令 | LED |
-|------|------|------|-----|
-| 左手举起 | 手腕超过红线 | LON | LED1 亮 |
-| 左手放下 | 手腕低于红线 | LOFF | LED1 灭 |
-| 右手举起 | 手腕超过红线 | RON | LED2 亮 |
-| 右手放下 | 手腕低于红线 | ROFF | LED2 灭 |
+| Key | Action |
+|-----|--------|
+| `1` | Turn LED1 ON |
+| `2` | Turn LED1 OFF |
+| `3` | Turn LED2 ON |
+| `4` | Turn LED2 OFF |
+| `m` | Toggle display mode (simple/skeleton) |
+| `q` | Quit program |
 
-### 4. 键盘快捷键
+## Configuration
 
-| 按键 | 功能 |
-|------|------|
-| `1` | 手动开 LED1 |
-| `2` | 手动关 LED1 |
-| `3` | 手动开 LED2 |
-| `4` | 手动关 LED2 |
-| `m` | 切换手部显示模式 |
-| `q` | 退出程序 |
-
-## 手部显示模式
-
-支持两种手部可视化模式，可在配置中设置或运行时切换：
-
-### 模式说明
-
-| 模式 | 描述 |
-|------|------|
-| `skeleton` | 蜘蛛网骨架模式（默认）- 显示手部 21 个关键点和骨架连线 |
-| `simple` | 简单模式 - 只显示手腕位置的圆点和 L/R 标签 |
-
-### 配置方式
-
-**方式1：修改配置文件**
-
-在 `main.py` 中修改：
+Edit `main.py` to customize:
 
 ```python
-HAND_DISPLAY_MODE = "skeleton"  # "skeleton" 或 "simple"
+SERIAL_PORT = "COM14"          # Your Arduino COM port
+HAND_RAISE_THRESH = 0.5        # Raise threshold (0-1, smaller = higher)
+HAND_DISPLAY_MODE = "skeleton" # "skeleton" or "simple"
 ```
 
-**方式2：运行时切换**
-
-按 `m` 键在两种模式间切换。
-
-### 骨架结构说明
-
-蜘蛛网模式显示手部 21 个关键点的完整骨架：
+## Project Structure
 
 ```
-关键点编号：
-0  - 手腕
-1-4 - 拇指 (手腕→拇指尖)
-5-8 - 食指 (手腕→食指尖)
-9-12 - 中指 (手腕→中指尖)
-13-16 - 无名指 (手腕→无名指尖)
-17-20 - 小指 (手腕→小指尖)
-
-连线关系：
-- 每根手指的关节依次连接
-- 手掌根部 (5, 9, 13, 17) 横向连接形成手掌骨架
+hand-gesture-led-control/
+├── main.py                                         # Python main program
+├── mediapipe-esp32-led-controller.ino              # Arduino firmware
+├── hand_landmarker.task                            # MediaPipe model file
+├── README.md                                       # Documentation
+└── blink_env/                                      # Python virtual environment
 ```
 
-### 显示颜色
-
-| 手 | 关键点颜色 | 连线颜色 |
-|----|-----------|---------|
-| 左手 | 白色 | 绿色 |
-| 右手 | 白色 | 蓝色 |
-
-## 配置参数
-
-在 `main.py` 中可调整：
-
-```python
-SERIAL_PORT = "COM14"          # 串口号
-HAND_RAISE_THRESH = 0.5        # 举手阈值 (0-1，越小需要举得越高)
-HAND_DISPLAY_MODE = "skeleton" # 手部显示模式: "skeleton" 或 "simple"
-```
-
-## 项目结构
+## How It Works
 
 ```
-FaceCtrlLED/
-├── main.py                  # Python 主程序
-├── FaceCtrlLED.ino          # Arduino 代码
-├── hand_landmarker.task     # MediaPipe 模型文件
-├── README.md                # 项目说明
-└── blink_env/               # Python 虚拟环境
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Webcam    │────►│  MediaPipe   │────►│   Python    │
+│             │     │ Hand Tracker │     │   Script    │
+└─────────────┘     └──────────────┘     └──────┬──────┘
+                                                │
+                    ┌───────────────────────────┘
+                    │ Serial Communication
+                    ▼
+           ┌────────────────┐
+           │    ESP32       │
+           │  ┌────┐ ┌────┐ │
+           │  │LED1│ │LED2│ │
+           │  └────┘ └────┘ │
+           └────────────────┘
 ```
 
-## 工作原理
+1. **Capture** - OpenCV captures real-time video from webcam
+2. **Detect** - MediaPipe detects 21 hand landmarks
+3. **Identify** - Determine left/right hand by landmark positions
+4. **Track** - Monitor hand position (raised/lowered)
+5. **Control** - Send serial commands to Arduino
+6. **Actuate** - Arduino toggles corresponding LED
 
-1. **摄像头采集**：OpenCV 捕获实时视频流
-2. **手部检测**：MediaPipe 检测手部 21 个关键点
-3. **左右手判断**：通过手腕和小指根部的相对位置判断左右手
-4. **举起检测**：手腕 y 坐标小于阈值时判定为举起
-5. **串口通信**：发送指令到 Arduino 控制 LED
+## Hand Skeleton Visualization
 
-## 常见问题
+The skeleton mode displays 21 hand landmarks:
 
-### Q: 串口无法打开？
+```
+Landmark Index:
+0      - Wrist
+1-4    - Thumb
+5-8    - Index finger
+9-12   - Middle finger
+13-16  - Ring finger
+17-20  - Pinky finger
+```
 
-- 检查 Arduino 是否已连接
-- 确认串口号是否正确（可在设备管理器查看）
-- 关闭 Arduino IDE 串口监视器
+## Troubleshooting
 
-### Q: 手势识别不准确？
+<details>
+<summary><b>Serial port cannot be opened</b></summary>
 
-- 调整 `HAND_RAISE_THRESH` 值
-- 确保光线充足
-- 保持手在摄像头视野内
+- Check if Arduino is connected
+- Verify the COM port in Device Manager (Windows) or `ls /dev/tty*` (Linux/Mac)
+- Close Arduino Serial Monitor if open
+- Make sure no other program is using the port
+</details>
 
-### Q: LED 不亮？
+<details>
+<summary><b>Hand detection not working</b></summary>
 
-- 检查接线是否正确
-- 确认引脚与代码一致
-- 查看 Python 控制台是否收到 Arduino 回复
+- Ensure `hand_landmarker.task` file exists in project directory
+- Check webcam is working and not used by other applications
+- Improve lighting conditions
+- Keep hands within camera frame
+</details>
 
-## 技术栈
+<details>
+<summary><b>LEDs not responding</b></summary>
 
-- **Python 3.x**
-- **OpenCV** - 图像处理
-- **MediaPipe** - 手部检测
-- **PySerial** - 串口通信
-- **Arduino** - 硬件控制
+- Verify wiring connections
+- Check LED polarity (longer leg is positive)
+- Confirm correct pins: LED1=Pin 8, LED2=Pin 18
+- Check serial communication in Python console
+</details>
 
-## License
+<details>
+<summary><b>No debug output on Serial2</b></summary>
 
-MIT
+- Verify USB-TTL connections: RX→Pin 17, GND→GND
+- Check baud rate is 115200
+- Try swapping RX/TX wires
+- Ensure USB-TTL driver is installed
+</details>
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## Acknowledgments
+
+- [MediaPipe](https://mediapipe.dev/) - Hand tracking solution
+- [OpenCV](https://opencv.org/) - Computer vision library
+- [Arduino](https://www.arduino.cc/) - Open-source hardware platform
+
+## Contact
+
+栈先锋 - [@栈先锋](https://space.bilibili.com/317356181)
+
+Project Link: [https://github.com/AndyTiTi/mediapipe-esp32-led-controller](https://github.com/AndyTiTi/mediapipe-esp32-led-controller)
+
+---
+
+⭐ If this project helped you, please give it a star!
